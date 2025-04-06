@@ -100,43 +100,40 @@ const LOGOUT = "LOGOUT";
 const baseURL = "https://helpkey-backend.vercel.app/api";
 
 // Action Creators
-export const loginSuccess = (token, msg, error, isAuthenticated) => {
-  return {
-    type: LOGIN_SUCCESS,
-    token,
-    msg,
-    error,
-    isAuthenticated,
-  };
-};
+export const loginSuccess = (msg, error, isAuthenticated) => ({
+  type: LOGIN_SUCCESS,
+  msg,
+  error,
+  isAuthenticated,
+});
 
-export const signUpUser = (error, msg) => {
-  return {
-    type: SIGNUP,
-    error,
-    msg,
-  };
-};
+export const signUpUser = (error, msg) => ({
+  type: SIGNUP,
+  error,
+  msg,
+});
 
-export const authSuccess = (token, isAuthenticated) => {
-  return {
-    type: AUTH_SUCCESS,
-    token,
-    isAuthenticated,
-  };
-};
+export const authSuccess = (isAuthenticated) => ({
+  type: AUTH_SUCCESS,
+  isAuthenticated,
+});
 
-export const isLoading = () => {
-  return {
-    type: LOADING,
-    isLoading: true,
-  };
-};
+export const isLoading = () => ({
+  type: LOADING,
+  isLoading: true,
+});
 
 export const logOut = () => {
-  localStorage.removeItem("token"); // Clear token on logout
-  return {
-    type: LOGOUT,
+  return async (dispatch) => {
+    try {
+      await axios.get(`${baseURL}/auth/logout`, {
+        withCredentials: true, // remove cookie from client
+      });
+    } catch (err) {
+      console.error("Logout error:", err.message);
+    }
+
+    dispatch({ type: LOGOUT });
   };
 };
 
@@ -146,17 +143,17 @@ export const logOut = () => {
 export const loginUser = (email, password) => async (dispatch) => {
   dispatch(isLoading());
   try {
-    const response = await axios.post(`${baseURL}/auth/login`, {
-      email,
-      password,
-    });
+    const response = await axios.post(
+      `${baseURL}/auth/login`,
+      { email, password },
+      { withCredentials: true } // set cookie
+    );
 
-    const { token, message } = response.data;
-    localStorage.setItem("token", token);
+    const { message } = response.data;
 
-    dispatch(loginSuccess(token, message, null, true));
+    dispatch(loginSuccess(message, null, true));
   } catch (error) {
-    dispatch(loginSuccess(null, null, error?.response?.data?.error || "Login failed", false));
+    dispatch(loginSuccess(null, error?.response?.data?.error || "Login failed", false));
   }
 };
 
@@ -164,7 +161,10 @@ export const loginUser = (email, password) => async (dispatch) => {
 export const signUpAction = (formData) => async (dispatch) => {
   dispatch(isLoading());
   try {
-    const response = await axios.post(`${baseURL}/auth/signup`, formData);
+    const response = await axios.post(`${baseURL}/auth/signup`, formData, {
+      withCredentials: true,
+    });
+
     const { message } = response.data;
     dispatch(signUpUser(null, message));
   } catch (error) {
@@ -176,11 +176,13 @@ export const signUpAction = (formData) => async (dispatch) => {
 export const authUser = () => async (dispatch) => {
   dispatch(isLoading());
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.post(`${baseURL}/authuser`, { token });
+    const response = await axios.get(`${baseURL}/authuser`, {
+      withCredentials: true, // send cookie
+    });
+
     const { isAuthenticated } = response.data;
-    dispatch(authSuccess(token, isAuthenticated));
+    dispatch(authSuccess(isAuthenticated));
   } catch (error) {
-    dispatch(authSuccess(null, false));
+    dispatch(authSuccess(false));
   }
 };
