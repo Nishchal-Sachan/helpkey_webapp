@@ -289,7 +289,11 @@ const HotelDetails = () => {
     }
   }, [propertyid]);
 
-  
+  const getNumberOfAdults = (guestString) => {
+    const match = guestString.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 1;
+  };
+
   const updateSearch = () => {
     setUpdating(true);
     setTimeout(() => {
@@ -373,89 +377,87 @@ const HotelDetails = () => {
           </div>
         </div> */}
 
-<div className="relative mt-4">
-  <div className="relative h-[400px] overflow-hidden">
-    {selectedHotel.images && selectedHotel.images.length > 0 ? (
-      <img
-        src={selectedHotel.images[currentImageIndex]}
-        alt="Hotel"
-        className="w-full h-full object-cover"
-      />
-    ) : (
-      <img
-        src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1200"
-        alt="Default Hotel"
-        className="w-full h-full object-cover"
-      />
-    )}
-    <button
-      onClick={prevImage}
-      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
-    >
-      <ChevronLeft className="w-6 h-6" />
-    </button>
-    <button
-      onClick={nextImage}
-      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
-    >
-      <ChevronRight className="w-6 h-6" />
-    </button>
-    {selectedHotel.images && selectedHotel.images.length > 0 ? (
-      <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
-        {currentImageIndex + 1}/{selectedHotel.images.length}
-      </div>
-    ) : (
-      <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
-        1/1
-      </div>
-    )}
-  </div>
-</div>
+        <div className="relative mt-4">
+          <div className="relative h-[400px] overflow-hidden">
+            {selectedHotel.images && selectedHotel.images.length > 0 ? (
+              <img
+                src={selectedHotel.images[currentImageIndex]}
+                alt="Hotel"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1200"
+                alt="Default Hotel"
+                className="w-full h-full object-cover"
+              />
+            )}
+            <button
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            {selectedHotel.images && selectedHotel.images.length > 0 ? (
+              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
+                {currentImageIndex + 1}/{selectedHotel.images.length}
+              </div>
+            ) : (
+              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
+                1/1
+              </div>
+            )}
+          </div>
+        </div>
 
 
         {/* Change Dates and Guests Section */}
-        <div className="bg-gray-100 p-4 rounded-lg flex justify-between items-center mt-10 mx-6">
-          <div>
-            <h2 className="font-semibold">Change Dates and Guest(s)</h2>
+        <div className="bg-gray-100 p-4 rounded-lg mt-10 mx-4 sm:mx-6">
+          <div className="mb-4 sm:mb-0">
+            <h2 className="font-semibold text-base sm:text-lg">Change Dates and Guest(s)</h2>
             <p className="text-sm text-gray-600">Check-in: 2 PM | Check-out: 12 PM</p>
           </div>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              className="border p-2 rounded-md"
-              value={checkInDate}
-              onChange={(e) => setCheckInDate(e.target.value)}
-            />
-            <input
-              type="date"
-              className="border p-2 rounded-md"
-              value={checkOutDate}
-              onChange={(e) => setCheckOutDate(e.target.value)}
-            />
-            <select
-              className="border p-2 rounded-md"
-              value={guests}
-              onChange={(e) => setGuests(e.target.value)}
-            >
-              <option>1 Adult</option>
-              <option>2 Adults</option>
-              <option>3 Adults</option>
-              <option>4 Adults</option>
-              <option>5 Adults</option>
-              <option>6 Adults</option>
-              <option>7 Adults</option>
-              <option>8 Adults</option>
-              <option>9 Adults</option>
-              <option>10 Adults</option>
-            </select>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="date"
+                className="border p-2 rounded-md w-full sm:w-auto"
+                value={checkInDate}
+                onChange={(e) => setCheckInDate(e.target.value)}
+              />
+              <input
+                type="date"
+                className="border p-2 rounded-md w-full sm:w-auto"
+                value={checkOutDate}
+                onChange={(e) => setCheckOutDate(e.target.value)}
+              />
+              <select
+                className="border p-2 rounded-md w-full sm:w-auto"
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
+              >
+                {[...Array(10)].map((_, i) => (
+                  <option key={i}>{i + 1} Adult{i > 0 ? 's' : ''}</option>
+                ))}
+              </select>
+            </div>
+
             <button
               onClick={updateSearch}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold"
+              className="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold w-full sm:w-auto"
             >
               {updating ? 'Updating...' : 'UPDATE SEARCH'}
             </button>
           </div>
         </div>
+
 
         {/* Hotel Amenities */}
         {/* <div className="grid md:grid-cols-3 gap-8 p-6">
@@ -480,10 +482,10 @@ const HotelDetails = () => {
             </div>
           </div> */}
 
-<div className="grid md:grid-cols-3 gap-8 p-6">
-  <div className="md:col-span-2">
-    {/* Render amenities from the backend */}
-    {/* {selectedHotel.amenities && selectedHotel.amenities.length > 0 && (
+        <div className="grid md:grid-cols-3 gap-8 p-6">
+          <div className="md:col-span-2">
+            {/* Render amenities from the backend */}
+            {/* {selectedHotel.amenities && selectedHotel.amenities.length > 0 && (
       <div className="flex gap-4 mb-6">
         {selectedHotel.amenities.map((amenity, index) => (
           <div key={index} className="bg-green-50 px-4 py-2 rounded-lg flex items-center gap-2">
@@ -494,14 +496,14 @@ const HotelDetails = () => {
       </div>
     )} */}
 
-    {/* Static amenities (if you want to keep them) */}
-    <div className="grid grid-cols-4 gap-4 mt-8">
-      <AmenityItem icon={<Wifi className="w-6 h-6" />} label="High Speed Wifi" />
-      <AmenityItem icon={<Star className="w-6 h-6" />} label="Well-equipped Rooms" />
-      <AmenityItem icon={<Utensils className="w-6 h-6" />} label="Healthy Food" />
-      <AmenityItem icon={<Sparkles className="w-6 h-6" />} label="100% Hygiene" />
-    </div>
-  </div>
+            {/* Static amenities (if you want to keep them) */}
+            <div className="grid grid-cols-4 gap-4 mt-8">
+              <AmenityItem icon={<Wifi className="w-6 h-6" />} label="High Speed Wifi" />
+              <AmenityItem icon={<Star className="w-6 h-6" />} label="Well-equipped Rooms" />
+              <AmenityItem icon={<Utensils className="w-6 h-6" />} label="Healthy Food" />
+              <AmenityItem icon={<Sparkles className="w-6 h-6" />} label="100% Hygiene" />
+            </div>
+          </div>
 
 
 
@@ -522,8 +524,12 @@ const HotelDetails = () => {
 
             <div className="border-t pt-4">
               <div className="flex justify-between items-center mb-4">
-                <div>1 × Deluxe Room for {guests}</div>
-                <div className="text-xl font-semibold">₹{selectedHotel.price}</div>
+                <div>1 × Deluxe Room for {getNumberOfAdults(guests)} Adult(s)</div>
+
+                <div className="text-xl font-semibold">
+                  ₹{selectedHotel.price * getNumberOfAdults(guests)}
+                </div>
+
               </div>
               <button
                 className="w-full bg-yellow-400 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
