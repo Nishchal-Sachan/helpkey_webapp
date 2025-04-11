@@ -1,62 +1,13 @@
-// import React, { useState, useEffect } from "react";
-// import { useSearchParams } from "react-router-dom";
-// import axios from "axios";
-// import { useNavigate } from "react-router-dom";
-
-// const BookingPage = () => {
-//     const [searchParams] = useSearchParams();
-//     const propertyid = searchParams.get('propertyid');
-//     const [hotel, setHotel] = useState(null);
-//     const [secureTrip, setSecureTrip] = useState(null);
-//     const [coupon, setCoupon] = useState("");
-//     const [discount, setDiscount] = useState(0);
-//     const [price, setPrice] = useState(4299);
-//     const [taxes, setTaxes] = useState(464);
-//     const [isModalOpen, setIsModalOpen] = useState(false);
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState(null);
-//     const navigate = useNavigate();
-//     const [guestDetails, setGuestDetails] = useState([
-//         {
-//             title: "Mr",
-//             firstName: "",
-//             lastName: "",
-//             email: "",
-//             mobile: "",
-//         },
-//     ]);
-
-
-//     // Fetch hotel details from API
-//     useEffect(() => {
-//         fetchHotelDetails();
-//     }, [propertyid]);
-
-//     const fetchHotelDetails = async () => {
-//         try {
-//             const response = await axios.get(`https://helpkeyapi.onrender.com/api/vendor-by-id`, {
-//                 params: { id: propertyid },
-//             });
-//             if (response.data && response.data.vendors) {
-//                 const hotelData = response.data.vendors;
-//                 setHotel(hotelData[0]);
-//                 setPrice(hotelData.price || 0);
-//                 setTaxes(hotelData.taxes || 0);
-//             }
-//         } catch (err) {
-//             console.error("Error fetching hotel details:", err);
-//             setError("Failed to load hotel details. Please try again.");
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useMakePayment } from './razorpay/buyProduct.js';
 
 const BookingPage = () => {
+    const makePayment = useMakePayment();
+    console.log("typeof makePayment:", typeof makePayment); // should be "function"
+
     const [searchParams] = useSearchParams();
     const propertyid = searchParams.get('propertyid');
     const [hotel, setHotel] = useState(null);
@@ -88,7 +39,7 @@ const BookingPage = () => {
 
             // API call to fetch listing by ID
             axios
-                .get(`https://helpkey-backend.vercel.app/api/listings/${propertyid}`)
+                .get(`https://helpkey-backend.onrender.com/api/listings/${propertyid}`)
                 .then((response) => {
                     setHotel(response.data.data);  // Updated to setHotel
                     setLoading(false);
@@ -102,27 +53,43 @@ const BookingPage = () => {
 
     const handleBooking = async () => {
         try {
-            const bookingData = {
+          const paymentHandler = async (paymentDetails) => {
+            try {
+              const bookingData = {
                 hotel_id: propertyid,
-                guest_name: guestDetails.name, // Assuming guestDetails has 'name'
-                check_in: checkInDate, // Use state for check-in date
-                check_out: checkOutDate, // Use state for check-out date
+                guest_name: guestDetails[0].firstName + " " + guestDetails[0].lastName,
+                check_in: checkInDate,
+                check_out: checkOutDate,
                 total_price: price - discount + taxes,
-            };
-
-            const response = await axios.post("https://helpkey-backend.vercel.app/api/bookings", bookingData);
-
-            if (response.data.success) {
-                alert("Booking successful! Redirecting to payment...");
-                navigate(`/paymentpage?bookingid=${response.data.bookingId}`); // Replaced router.push with navigate
-            } else {
+                payment_id: paymentDetails.razorpay_payment_id,
+              };
+      
+              const response = await axios.post("https://helpkey-backend.onrender.com/api/bookings", bookingData);
+      
+              if (response.data.success) {
+                alert("Booking successful!");
+                navigate(`/success?bookingid=${response.data.bookingId}`);
+              } else {
                 alert("Booking failed! Please try again.");
+              }
+            } catch (error) {
+              console.error("Booking error after payment:", error);
+              alert("An error occurred while saving the booking.");
             }
+          };
+      
+          await makePayment({
+            productId: propertyid,
+            onSuccess: paymentHandler,
+            navigate, // 👈 pass navigate manually
+          });
         } catch (error) {
-            console.error("Booking error:", error);
-            alert("An error occurred while booking. Please try again.");
+          console.error("Error during booking/payment:", error);
+          alert("Something went wrong during payment.");
         }
-    };
+      };
+    
+    
     // Available Coupons List
     const availableCoupons = [
         { code: "HKHSBCEMI", discount: 580, description: "₹580 off on HDFC Credit Card EMI" },
@@ -381,7 +348,7 @@ const BookingPage = () => {
                 {/* Book Now Button */}
                 <div className="bg-white shadow-odd rounded-lg p-6">
                     <button className="w-56 bg-yellow-400 py-3 rounded-md font-semibold hover:bg-yellow-500 transition-colors"
-                        onClick={() => handleBooking}
+                        onClick={handleBooking}
                     >
                         Pay Now
                     </button>
@@ -460,3 +427,5 @@ const BookingPage = () => {
 };
 
 export default BookingPage;
+
+

@@ -97,7 +97,7 @@ const LOADING = "LOADING";
 const LOGOUT = "LOGOUT";
 
 // Base URL for Vercel backend
-const baseURL = "https://helpkey-backend.vercel.app/api";
+const baseURL = "https://helpkey-backend.onrender.com/api";
 
 // Action Creators
 export const loginSuccess = (msg, error, isAuthenticated) => ({
@@ -126,7 +126,7 @@ export const isLoading = () => ({
 export const logOut = () => {
   return async (dispatch) => {
     try {
-      await axios.get(`${baseURL}/auth/logout`, {
+      await axios.get(`${baseURL}/admin/logout`, {
         withCredentials: true, // remove cookie from client
       });
     } catch (err) {
@@ -144,7 +144,7 @@ export const loginUser = (email, password) => async (dispatch) => {
   dispatch(isLoading());
   try {
     const response = await axios.post(
-      `${baseURL}/auth/login`,
+      `${baseURL}/admin/login`,
       { email, password },
       { withCredentials: true } // set cookie
     );
@@ -161,7 +161,7 @@ export const loginUser = (email, password) => async (dispatch) => {
 export const signUpAction = (formData) => async (dispatch) => {
   dispatch(isLoading());
   try {
-    const response = await axios.post(`${baseURL}/auth/signup`, formData, {
+    const response = await axios.post(`${baseURL}/admin/signup`, formData, {
       withCredentials: true,
     });
 

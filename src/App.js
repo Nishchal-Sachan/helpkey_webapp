@@ -11,10 +11,9 @@ import { useState } from "react";
 import { privateAxios } from "./services/axios.service";
 import BookingPage from './components/Bookingpage';
 import PaymentPage from './components/Paymentpage';
-
+import Success from './components/paymentsuccess/success';
 
 const App = () => {
-
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { isLoading } = useSelector((state) => state.auth);
@@ -60,6 +59,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/BookingPage" element={<BookingPage />} />
         <Route path="/PaymentPage" element={<PaymentPage />} />
+        <Route path="/success" element={<Success />} />
       </Routes>
     </BrowserRouter>
   );

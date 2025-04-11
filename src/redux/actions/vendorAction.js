@@ -79,7 +79,7 @@ export const nearByListings = (locationDetails) => async (dispatch) => {
     
     try {
         // Fetch listings with the location query parameter
-        const response = await axios.get("https://helpkey-backend.vercel.app/api/listings", {
+        const response = await axios.get("https://helpkey-backend.onrender.com/api/listings", {
             params: { location: locationDetails.city }
         });
 
