@@ -4,7 +4,7 @@ export const useMakePayment = () => {
     const key = process.env.REACT_APP_RAZORPAY_API_KEY;
 
     try {
-      const res = await fetch("https://helpkey-backend.vercel.app//api/razorpay");
+      const res = await fetch("https://helpkey-backend.vercel.app/api/razorpay");
       const { order } = await res.json();
       console.log(order);
 
