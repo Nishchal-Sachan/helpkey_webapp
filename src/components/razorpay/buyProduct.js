@@ -16,7 +16,7 @@ export const useMakePayment = () => {
         order_id: order.id,
         description: "Understanding RazorPay Integration",
         handler: async function (response) {
-          const verifyRes = await fetch("https://helpkey-backend.vercel.app//api/paymentverify", {
+          const verifyRes = await fetch("https://helpkey-backend.vercel.app/api/paymentverify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
