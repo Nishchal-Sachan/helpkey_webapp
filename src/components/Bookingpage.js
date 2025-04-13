@@ -6,8 +6,6 @@ import { useMakePayment } from './razorpay/buyProduct.js';
 
 const BookingPage = () => {
     const makePayment = useMakePayment();
-    console.log("typeof makePayment:", typeof makePayment); // should be "function"
-
     const [searchParams] = useSearchParams();
     const propertyid = searchParams.get('propertyid');
     const [hotel, setHotel] = useState(null);
@@ -19,7 +17,7 @@ const BookingPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const navigate = useNavigate();  // Corrected navigation import
+    const navigate = useNavigate();
     const [guestDetails, setGuestDetails] = useState([
         {
             title: "Mr",
@@ -29,19 +27,18 @@ const BookingPage = () => {
             mobile: "",
         },
     ]);
-    const [checkInDate, setCheckInDate] = useState('');  // Added state for check-in date
-    const [checkOutDate, setCheckOutDate] = useState('');  // Added state for check-out date
+    const [checkInDate, setCheckInDate] = useState('');
+    const [checkOutDate, setCheckOutDate] = useState('');
 
     useEffect(() => {
         if (propertyid) {
             setLoading(true);
             setError(null);
 
-            // API call to fetch listing by ID
             axios
                 .get(`https://helpkey-backend.onrender.com/api/listings/${propertyid}`)
                 .then((response) => {
-                    setHotel(response.data.data);  // Updated to setHotel
+                    setHotel(response.data.data);
                     setLoading(false);
                 })
                 .catch((error) => {
@@ -53,51 +50,48 @@ const BookingPage = () => {
 
     const handleBooking = async () => {
         try {
-          const paymentHandler = async (paymentDetails) => {
-            try {
-              const bookingData = {
-                hotel_id: propertyid,
-                guest_name: guestDetails[0].firstName + " " + guestDetails[0].lastName,
-                check_in: checkInDate,
-                check_out: checkOutDate,
-                total_price: price - discount + taxes,
-                payment_id: paymentDetails.razorpay_payment_id,
-              };
-      
-              const response = await axios.post("https://helpkey-backend.onrender.com/api/bookings", bookingData);
-      
-              if (response.data.success) {
-                alert("Booking successful!");
-                navigate(`/success?bookingid=${response.data.bookingId}`);
-              } else {
-                alert("Booking failed! Please try again.");
-              }
-            } catch (error) {
-              console.error("Booking error after payment:", error);
-              alert("An error occurred while saving the booking.");
-            }
-          };
-      
-          await makePayment({
-            productId: propertyid,
-            onSuccess: paymentHandler,
-            navigate, // 👈 pass navigate manually
-          });
+            const paymentHandler = async (paymentDetails) => {
+                try {
+                    const bookingData = {
+                        hotel_id: propertyid,
+                        guest_name: guestDetails[0].firstName + " " + guestDetails[0].lastName,
+                        check_in: checkInDate,
+                        check_out: checkOutDate,
+                        total_price: price - discount + taxes,
+                        payment_id: paymentDetails.razorpay_payment_id,
+                    };
+
+                    const response = await axios.post("https://helpkey-backend.onrender.com/api/bookings", bookingData);
+
+                    if (response.data.success) {
+                        alert("Booking successful!");
+                        navigate(`/success?bookingid=${response.data.bookingId}`);
+                    } else {
+                        alert("Booking failed! Please try again.");
+                    }
+                } catch (error) {
+                    console.error("Booking error after payment:", error);
+                    alert("An error occurred while saving the booking.");
+                }
+            };
+
+            await makePayment({
+                productId: propertyid,
+                onSuccess: paymentHandler,
+                navigate,
+            });
         } catch (error) {
-          console.error("Error during booking/payment:", error);
-          alert("Something went wrong during payment.");
+            console.error("Error during booking/payment:", error);
+            alert("Something went wrong during payment.");
         }
-      };
-    
-    
-    // Available Coupons List
+    };
+
     const availableCoupons = [
         { code: "HKHSBCEMI", discount: 580, description: "₹580 off on HDFC Credit Card EMI" },
         { code: "HKSBIEMI", discount: 464, description: "₹464 off on SBI Credit Card EMI" },
         { code: "WELCOME10", discount: 500, description: "10% off for first-time users" },
     ];
 
-    // Apply Coupon Function
     const applyCoupon = () => {
         const selectedCoupon = availableCoupons.find((c) => c.code === coupon);
         if (selectedCoupon) {
@@ -115,7 +109,6 @@ const BookingPage = () => {
         ]);
     };
 
-    // Function to remove a guest
     const removeGuest = (index) => {
         if (guestDetails.length > 1) {
             setGuestDetails(guestDetails.filter((_, i) => i !== index));
@@ -132,13 +125,10 @@ const BookingPage = () => {
 
     return (
         <div className="container mx-auto p-6 flex flex-col md:flex-row gap-6">
-            {/* Left Section - Booking Details */}
             <div className="md:w-2/3 space-y-6">
-                {/* Booking Review Card */}
                 <div className="bg-white shadow-odd rounded-lg p-6">
                     <h1 className="text-2xl font-bold">Review Your Booking</h1>
-                    <p className="text-gray-600">{loading ? "Loading..." : hotel?.servicename || "Hotel Name Not Available"}
-                    </p>
+                    <p className="text-gray-600">{loading ? "Loading..." : hotel?.servicename || "Hotel Name Not Available"}</p>
 
                     <div className="flex justify-between items-center border-t pt-4 mt-4">
                         <div>
@@ -152,6 +142,7 @@ const BookingPage = () => {
                         </div>
                         <p className="text-xl font-semibold">₹{price}</p>
                     </div>
+
                     <div className="border-t pt-4 mt-4">
                         <h2 className="font-semibold text-lg">Upgrade Your Stay</h2>
                         <div className="flex flex-col gap-2 mt-2">
@@ -167,7 +158,6 @@ const BookingPage = () => {
                     </div>
                 </div>
 
-                {/* Important Information Card */}
                 <div className="bg-white shadow-odd rounded-lg p-6">
                     <h2 className="text-xl font-bold">Important Information</h2>
                     <ul className="list-disc pl-5 text-gray-700 mt-2">
@@ -176,15 +166,11 @@ const BookingPage = () => {
                         <li>Smoking within the premises is not allowed.</li>
                         <li>Special cancellation policies apply to group bookings.</li>
                     </ul>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="mt-4 text-blue-600 font-semibold underline"
-                    >
+                    <button onClick={() => setIsModalOpen(true)} className="mt-4 text-blue-600 font-semibold underline">
                         View More
                     </button>
                 </div>
 
-                {/*Modal*/}
                 {isModalOpen && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                         <div className="bg-white p-6 rounded-lg shadow-odd max-w-md w-full">
@@ -205,37 +191,22 @@ const BookingPage = () => {
                     </div>
                 )}
 
-                {/*Guest Details*/}
                 <div className="bg-white shadow-lg rounded-lg p-6">
                     <h2 className="text-xl font-bold">Guest Details</h2>
 
-                    {/* Myself or Someone Else */}
                     <div className="mt-4">
                         <label className="p-2">
-                            <input
-                                type="radio"
-                                name="guestdetail"
-                                onChange={() => setSecureTrip(true)}
-                            />{" "}
-                            Myself
+                            <input type="radio" name="guestdetail" onChange={() => setSecureTrip(true)} /> Myself
                         </label>
                         <label className="p-2">
-                            <input
-                                type="radio"
-                                name="guestdetail"
-                                onChange={() => setSecureTrip(false)}
-                            />{" "}
-                            Someone Else
+                            <input type="radio" name="guestdetail" onChange={() => setSecureTrip(false)} /> Someone Else
                         </label>
                     </div>
 
-                    {/* Guest Information Form */}
                     {guestDetails.map((guest, index) => (
                         <div key={index} className="mt-6 border-b pb-4 relative">
                             <div className="flex">
                                 <h3 className="text-lg font-semibold">Guest {index + 1}</h3>
-
-                                {/* Remove Guest Button */}
                                 {guestDetails.length > 1 && (
                                     <button
                                         onClick={() => removeGuest(index)}
@@ -251,10 +222,8 @@ const BookingPage = () => {
                                     <label className="text-sm font-medium">Title</label>
                                     <select
                                         className="border p-2 rounded w-full"
-                                        value={guestDetails.title}
-                                        onChange={(e) =>
-                                            handleGuestChange(index, "title", e.target.value)
-                                        }
+                                        value={guest.title}
+                                        onChange={(e) => handleGuestChange(index, "title", e.target.value)}
                                     >
                                         <option>Mr</option>
                                         <option>Mrs</option>
@@ -267,10 +236,8 @@ const BookingPage = () => {
                                         type="text"
                                         className="border p-2 rounded w-full"
                                         placeholder="First Name"
-                                        value={guestDetails.firstName}
-                                        onChange={(e) =>
-                                            handleGuestChange(index, "firstName", e.target.value)
-                                        }
+                                        value={guest.firstName}
+                                        onChange={(e) => handleGuestChange(index, "firstName", e.target.value)}
                                     />
                                 </div>
                                 <div className="w-1/2">
@@ -279,10 +246,8 @@ const BookingPage = () => {
                                         type="text"
                                         className="border p-2 rounded w-full"
                                         placeholder="Last Name"
-                                        value={guestDetails.lastName}
-                                        onChange={(e) =>
-                                            handleGuestChange(index, "lastName", e.target.value)
-                                        }
+                                        value={guest.lastName}
+                                        onChange={(e) => handleGuestChange(index, "lastName", e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -293,10 +258,8 @@ const BookingPage = () => {
                                     type="email"
                                     className="border p-2 rounded w-full"
                                     placeholder="Email Address"
-                                    value={guestDetails.email}
-                                    onChange={(e) =>
-                                        handleGuestChange(index, "email", e.target.value)
-                                    }
+                                    value={guest.email}
+                                    onChange={(e) => handleGuestChange(index, "email", e.target.value)}
                                 />
                             </div>
 
@@ -306,126 +269,67 @@ const BookingPage = () => {
                                     type="tel"
                                     className="border p-2 rounded w-full"
                                     placeholder="Mobile Number"
-                                    value={guestDetails.mobile}
-                                    onChange={(e) =>
-                                        handleGuestChange(index, "mobile", e.target.value)
-                                    }
+                                    value={guest.mobile}
+                                    onChange={(e) => handleGuestChange(index, "mobile", e.target.value)}
                                 />
                             </div>
                         </div>
                     ))}
 
-                    {/* Add More Guest Button */}
-                    <button
-                        onClick={addGuest}
-                        className="mt-4 bg-blue-500 text-white w-44 p-2 rounded font-semibold hover:bg-blue-600"
-                    >
-                        + Add More Guest
-                    </button>
-                </div>
-
-
-                {/* Trip Secure Card */}
-                <div className="bg-white shadow-odd rounded-lg p-6">
-                    <h2 className="text-xl font-bold">Trip Secure</h2>
-                    <p className="text-gray-700">Enjoy a Worry-Free Stay</p>
-                    <div className="mt-4 bg-blue-100 p-4 rounded">
-                        <p className="font-semibold">Loss of Laptop/Tablet - ₹25,000</p>
-                        <p>Medical Assistance - 24*7 SUPPORT</p>
-                        <p>Refund on Hotel Cancellation - ₹15,000</p>
-                        <p>Personal Accident - ₹10,00,000</p>
-                    </div>
-                    <div className="mt-4">
-                        <label className="block border p-2 rounded cursor-pointer">
-                            <input type="radio" name="tripSecure" onChange={() => setSecureTrip(true)} /> Yes, secure my trip.
-                        </label>
-                        <label className="block border p-2 rounded cursor-pointer mt-2">
-                            <input type="radio" name="tripSecure" onChange={() => setSecureTrip(false)} /> No, I will book without trip secure.
-                        </label>
-                    </div>
-                </div>
-
-                {/* Book Now Button */}
-                <div className="bg-white shadow-odd rounded-lg p-6">
-                    <button className="w-56 bg-yellow-400 py-3 rounded-md font-semibold hover:bg-yellow-500 transition-colors"
-                        onClick={handleBooking}
-                    >
-                        Pay Now
-                    </button>
+                    <button onClick={addGuest} className="mt-4 text-blue-600 underline">+ Add Guest</button>
                 </div>
             </div>
 
-            {/* Right Section - Price Breakup & Coupon Code */}
+            {/* Right section - Pricing Summary and Actions can go here */}
             <div className="md:w-1/3 space-y-6">
-                {/* Price Breakup Card */}
-                <div className="bg-white shadow-odd rounded-lg p-6">
-                    <h2 className="font-semibold text-lg">Price Breakup</h2>
-                    <div className="flex justify-between mt-2">
-                        <p>Room Price</p>
-                        <p>₹{price}</p>
-                    </div>
-                    <div className="flex justify-between mt-2 text-green-500">
-                        <p>Discount</p>
-                        <p>- ₹{discount}</p>
-                    </div>
-                    <div className="flex justify-between mt-2">
-                        <p>Hotel Taxes</p>
-                        <p>₹{taxes}</p>
-                    </div>
-                    <div className="flex justify-between mt-2 font-semibold border-t pt-2">
-                        <p>Total Amount</p>
-                        <p>₹{price - discount + taxes}</p>
-                    </div>
-                </div>
+  <div className="bg-white shadow-md rounded-lg p-6">
+    <h2 className="text-xl font-bold mb-4">Price Summary</h2>
+    <div className="flex justify-between py-2">
+      <span>Base Price</span>
+      <span>₹{price}</span>
+    </div>
+    <div className="flex justify-between py-2">
+      <span>Taxes & Fees</span>
+      <span>₹{taxes}</span>
+    </div>
+    {discount > 0 && (
+      <div className="flex justify-between py-2 text-green-600 font-semibold">
+        <span>Discount</span>
+        <span>-₹{discount}</span>
+      </div>
+    )}
+    <hr className="my-3" />
+    <div className="flex justify-between font-bold text-lg">
+      <span>Total</span>
+      <span>₹{price - discount + taxes}</span>
+    </div>
+    <div className="mt-6">
+      <label className="block text-sm font-medium mb-1">Have a Coupon?</label>
+      <input
+        type="text"
+        value={coupon}
+        onChange={(e) => setCoupon(e.target.value)}
+        placeholder="Enter coupon code"
+        className="border rounded w-full px-3 py-2 mb-2"
+      />
+      <button
+        onClick={applyCoupon}
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+      >
+        Apply Coupon
+      </button>
+    </div>
+    <button
+      onClick={handleBooking}
+      className="w-full mt-6 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+    >
+      Confirm & Pay ₹{price - discount + taxes}
+    </button>
+  </div>
+</div>
 
-                {/* Coupon Code Card */}
-                <div className="bg-white shadow-lg rounded-lg p-6">
-                    <h2 className="font-semibold text-lg">Coupon Codes</h2>
-
-                    {/* Available Coupons List */}
-                    <div className="mt-2 bg-gray-100 p-3 rounded-lg">
-                        <h3 className="text-sm font-bold text-gray-700">Available Coupons</h3>
-                        {availableCoupons.map((couponItem, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setCoupon(couponItem.code)}
-                                className="block w-full text-left bg-white p-2 rounded mt-2 hover:bg-gray-200 transition"
-                            >
-                                <p className="font-semibold text-blue-600">{couponItem.code}</p>
-                                <p className="text-sm text-gray-500">{couponItem.description}</p>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Coupon Input Field */}
-                    <div className="flex items-center space-x-2 mt-4">
-                        <input
-                            type="text"
-                            placeholder="Enter Coupon Code"
-                            className="border p-2 rounded w-full"
-                            value={coupon}
-                            onChange={(e) => setCoupon(e.target.value)}
-                        />
-                        <button
-                            onClick={applyCoupon}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        >
-                            Apply
-                        </button>
-                    </div>
-
-                    {/* Discount Applied */}
-                    {discount > 0 && (
-                        <p className="mt-2 text-green-600 font-semibold">
-                            Discount Applied: ₹{discount}
-                        </p>
-                    )}
-                </div>
-            </div>
-        </div >
+        </div>
     );
 };
 
 export default BookingPage;
-
-
