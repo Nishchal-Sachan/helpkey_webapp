@@ -84,10 +84,11 @@ export const nearByListings = (locationDetails) => async (dispatch) => {
         });
 
         // Assuming response.data.data contains the listings
-        const { data } = response.data; // Make sure this matches your backend's structure
+        const { listings } = response.data; // Make sure this matches your backend's structure
 
+        console.log("action",listings);
         // Dispatch success with the data
-        dispatch(nearByListingsSuccess(data));
+        dispatch(nearByListingsSuccess(listings));
 
     } catch (error) {
         console.error(error);
