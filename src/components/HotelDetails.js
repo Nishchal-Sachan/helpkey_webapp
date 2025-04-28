@@ -59,11 +59,14 @@ const HotelDetails = () => {
       axios
         .get(`https://helpkey-backend.onrender.com/api/listings/${propertyid}`)
         .then((response) => {
-          setSelectedHotel(response.data.data);
-          setAvailableRooms(response.data.data.rooms || 1);
+          const parsed = JSON.parse(response.data.details);
+          console.log("response",parsed);
+          setSelectedHotel(response.data.listing);
+          setAvailableRooms(parsed.number_of_rooms || 1);
           setLoading(false);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log(err);
           setError('Failed to load hotel details.');
           setLoading(false);
         });
