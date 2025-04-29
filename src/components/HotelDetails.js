@@ -60,7 +60,7 @@ const HotelDetails = () => {
         .get(`https://helpkey-backend.onrender.com/api/listings/${propertyid}`)
         .then((response) => {
           const parsed = JSON.parse(response.data.details);
-          console.log("response",parsed);
+          // console.log("response",parsed);
           setSelectedHotel(response.data.listing);
           setAvailableRooms(parsed.number_of_rooms || 1);
           setLoading(false);

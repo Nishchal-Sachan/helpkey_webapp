@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import {selectHotel} from '../redux/actions/vendorAction';
 
 const HotelCard = ({ hotel }) => {
+  console.log(hotel);
+  const HotelDetail = JSON.parse(hotel.details);
+  console.log("details",HotelDetail);
   const navigate = useNavigate();
   const [distance, setDistance] = useState(null);
 
@@ -61,8 +64,8 @@ const HotelCard = ({ hotel }) => {
         className="w-full md:w-32 h-24 object-cover rounded-md"
       />
       <div className="ml-0 md:ml-4 flex-grow text-center md:text-left">
-        <h2 className="font-bold text-lg">{hotel.servicename}</h2>
-        <p className="text-gray-500 text-sm md:text-base">{hotel.address}</p>
+        <h2 className="font-bold text-lg">{hotel.title}</h2>
+        <p className="text-gray-500 text-sm md:text-base">{hotel.location}</p>
         <div className="flex justify-center md:justify-start items-center text-yellow-500">
           <span className="font-bold">{hotel.rating || 'N/A'}</span>
           <span className="ml-2 text-gray-500">({hotel.reviews || '5'} Reviews)</span>
@@ -77,7 +80,7 @@ const HotelCard = ({ hotel }) => {
         )}
       </div>
       <div className="text-center md:text-right mt-4 md:mt-0">
-        <p className="text-lg font-bold text-red-500">₹{hotel.price || 'N/A'}</p>
+        <p className="text-lg font-bold text-red-500">₹{HotelDetail?.price?? 'N/A'}</p>
         <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md">
           Select Rooms
         </button>
