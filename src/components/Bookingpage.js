@@ -60,7 +60,7 @@ const BookingPage = () => {
                         total_price: price - discount + taxes,
                         payment_id: paymentDetails.razorpay_payment_id,
                     };
-
+                    console.log(bookingData);
                     const response = await axios.post("https://helpkey-backend.onrender.com/api/bookings", bookingData);
 
                     if (response.data.success) {
