@@ -126,7 +126,7 @@ export const isLoading = () => ({
 export const logOut = () => {
   return async (dispatch) => {
     try {
-      await axios.get(`${baseURL}/admin/logout`, {
+      await axios.get(`${baseURL}/client/logout`, {
         withCredentials: true, // remove cookie from client
       });
     } catch (err) {
@@ -144,7 +144,7 @@ export const loginUser = (email, password) => async (dispatch) => {
   dispatch(isLoading());
   try {
     const response = await axios.post(
-      `${baseURL}/admin/login`,
+      `${baseURL}/client/login`,
       { email, password },
       { withCredentials: true } // set cookie
     );
@@ -161,7 +161,7 @@ export const loginUser = (email, password) => async (dispatch) => {
 export const signUpAction = (formData) => async (dispatch) => {
   dispatch(isLoading());
   try {
-    const response = await axios.post(`${baseURL}/admin/signup`, formData, {
+    const response = await axios.post(`${baseURL}/client/signup`, formData, {
       withCredentials: true,
     });
 
@@ -176,7 +176,7 @@ export const signUpAction = (formData) => async (dispatch) => {
 export const authUser = () => async (dispatch) => {
   dispatch(isLoading());
   try {
-    const response = await axios.get(`${baseURL}/authuser`, {
+    const response = await axios.get(`${baseURL}/client/authuser`, {
       withCredentials: true, // send cookie
     });
 
