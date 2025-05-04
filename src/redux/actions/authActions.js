@@ -86,7 +86,7 @@
 
 //   }
   
-
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 
 // Action Types
@@ -160,17 +160,33 @@ export const loginUser = (email, password) => async (dispatch) => {
 // Signup
 export const signUpAction = (formData) => async (dispatch) => {
   dispatch(isLoading());
+
+  // Extract only the necessary fields
+  const { first_name, last_name, email, phone_number, password } = formData;
+  const payload = { first_name, last_name, email, phone_number, password };
+  console.log("payload",payload);
   try {
-    const response = await axios.post(`${baseURL}/client/signup`, formData, {
+    const response = await axios.post(`${baseURL}/client/signup`, payload, {
       withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     const { message } = response.data;
     dispatch(signUpUser(null, message));
+    // Show success alert
+    alert(message || "Signup successful");
+
+    // Redirect to homepage after success
+    const navigate = useNavigate();
+    navigate('/');
   } catch (error) {
+    alert(error?.response?.data?.error );
     dispatch(signUpUser(error?.response?.data?.error || "Signup failed", null));
   }
 };
+
 
 // Auth Check
 export const authUser = () => async (dispatch) => {

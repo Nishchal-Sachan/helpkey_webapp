@@ -28,6 +28,7 @@ const HotelDetails = () => {
   const [updating, setUpdating] = useState(false);
   const [availableRooms, setAvailableRooms] = useState(1);
   const [roomCount, setRoomCount] = useState(1);
+  const [guests, setGuests] = useState(searchParams.get('guests') || '1 Adult');
   const navigate = useNavigate();
 
   const formatDate = (date) => {
@@ -49,7 +50,8 @@ const HotelDetails = () => {
   const [checkOutDate, setCheckOutDate] = useState(
     searchParams.get('checkout') || tomorrow.toISOString().split('T')[0]
   );
-  const [guests, setGuests] = useState(searchParams.get('guests') || '1 Adult');
+
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     if (propertyid) {
@@ -60,20 +62,49 @@ const HotelDetails = () => {
         .get(`https://helpkey-backend.onrender.com/api/listings/${propertyid}`)
         .then((response) => {
           const parsed = JSON.parse(response.data.details);
-          // console.log("response",parsed);
           setSelectedHotel(response.data.listing);
           setAvailableRooms(parsed.number_of_rooms || 1);
           setLoading(false);
         })
         .catch((err) => {
-          console.log(err);
           setError('Failed to load hotel details.');
           setLoading(false);
         });
     }
   }, [propertyid]);
 
+  // Calculate the number of days between check-in and check-out
+  const calculateNumberOfDays = (checkIn, checkOut) => {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const differenceInTime = checkOutDate.getTime() - checkInDate.getTime();
+    return differenceInTime / (1000 * 3600 * 24); // Convert time difference to days
+  };
+
+  // Update the total price based on the number of rooms and number of days
+  useEffect(() => {
+    if (selectedHotel) {
+      const pricePerRoom = selectedHotel.price || 9;
+      const numberOfDays = calculateNumberOfDays(checkInDate, checkOutDate);
+      const newTotalPrice = pricePerRoom * roomCount * numberOfDays;
+      setTotalPrice(newTotalPrice);
+    }
+  }, [roomCount, guests, selectedHotel, checkInDate, checkOutDate]);
+
+  const getNumberOfAdults = (guestString) => {
+    const match = guestString.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 1;
+  };
+
   const updateSearch = () => {
+    const maxGuestsPerRoom = 3;
+    const totalGuests = getNumberOfAdults(guests);
+
+    if (roomCount < Math.ceil(totalGuests / maxGuestsPerRoom)) {
+      alert('Please increase the number of rooms as the maximum number of guests in a room is 3.');
+      return;
+    }
+
     setUpdating(true);
     setTimeout(() => {
       setSearchParams({
@@ -85,11 +116,6 @@ const HotelDetails = () => {
       });
       setUpdating(false);
     }, 1000);
-  };
-
-  const getNumberOfAdults = (guestString) => {
-    const match = guestString.match(/\d+/);
-    return match ? parseInt(match[0], 10) : 1;
   };
 
   if (loading) return <p>Loading hotel details...</p>;
@@ -126,36 +152,6 @@ const HotelDetails = () => {
         </div>
 
         {/* Hotel Image Gallery */}
-        {/* <div className="relative mt-4">
-          <div className="relative h-[400px] overflow-hidden">
-            {selectedHotel.images &&
-              selectedHotel.images.length > 0 && (
-                <img
-                  src={selectedHotel.images[currentImageIndex]}
-                  alt="Hotel"
-                  className="w-full h-full object-cover"
-                />
-              )}
-            <button
-              onClick={prevImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-            {selectedHotel.images && selectedHotel.images.length > 0 && (
-              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
-                {currentImageIndex + 1}/{selectedHotel.images.length}
-              </div>
-            )}
-          </div>
-        </div> */}
-
         <div className="relative mt-4">
           <div className="relative h-[400px] overflow-hidden">
             {selectedHotel.images && selectedHotel.images.length > 0 ? (
@@ -183,13 +179,9 @@ const HotelDetails = () => {
             >
               <ChevronRight className="w-6 h-6" />
             </button>
-            {selectedHotel.images && selectedHotel.images.length > 0 ? (
+            {selectedHotel.images && selectedHotel.images.length > 0 && (
               <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
                 {currentImageIndex + 1}/{selectedHotel.images.length}
-              </div>
-            ) : (
-              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-2 py-1 rounded">
-                1/1
               </div>
             )}
           </div>
@@ -221,7 +213,7 @@ const HotelDetails = () => {
                 value={guests}
                 onChange={(e) => setGuests(e.target.value)}
               >
-                {[...Array(selectedHotel.guests || 10)].map((_, i) => (
+                {[...Array(availableRooms * 3)].map((_, i) => (
                   <option key={i}>{i + 1} Adult{i > 0 ? 's' : ''}</option>
                 ))}
               </select>
@@ -240,61 +232,52 @@ const HotelDetails = () => {
 
             <button
               onClick={updateSearch}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md font-semibold w-full sm:w-auto"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md"
             >
-              {updating ? 'Updating...' : 'UPDATE SEARCH'}
+              {updating ? 'Updating...' : 'Update'}
             </button>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 p-6">
-          {/* Amenities Section */}
-          {selectedHotel.amenities && selectedHotel.amenities.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-8">
-              {selectedHotel.amenities.map((item, idx) => (
+        {/* Amenities Section */}
+        {selectedHotel.amenities && (
+          <div className="mt-8">
+            <h2 className="font-semibold text-lg">Amenities</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {selectedHotel.amenities.map((amenity, index) => (
                 <AmenityItem
-                  key={idx}
-                  icon={<Sparkles className="w-5 h-5 text-blue-600" />} // You can map icons dynamically too
-                  label={item.charAt(0).toUpperCase() + item.slice(1)}
+                  key={index}
+                  icon={
+                    amenity === 'wifi' ? (
+                      <Wifi className="w-5 h-5 text-blue-600" />
+                    ) : amenity === 'star' ? (
+                      <Star className="w-5 h-5 text-blue-600" />
+                    ) : amenity === 'sparkles' ? (
+                      <Sparkles className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <span className="w-5 h-5 text-blue-600" />
+                    )
+                  }
+                  label={amenity}
                 />
               ))}
             </div>
-          )}
+          </div>
+        )}
 
-
-          {/* Booking Card */}
-          <div className="bg-gray-50 p-6 rounded-lg mt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold">Fabulous</h3>
-              <div className="text-green-600 text-sm">
-                <div>92% guests rated 4+</div>
-                <div>99% guests recommend</div>
-              </div>
-            </div>
-
-            <div className="flex gap-4 mb-4">
-              <DateDisplay date={formatDate(checkInDate)} />
-              <DateDisplay date={formatDate(checkOutDate)} />
-            </div>
-
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center mb-4">
-                <div>{roomCount} × Deluxe Room for {getNumberOfAdults(guests)} Adult(s)</div>
-                <div className="text-xl font-semibold">
-                  ₹{selectedHotel.price * roomCount}
-                </div>
-              </div>
-              <button
-                className="w-full bg-yellow-400 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition-colors"
-                onClick={() =>
-                  navigate(
-                    `/bookingpage?propertyid=${propertyid}&checkin=${checkInDate}&checkout=${checkOutDate}&guests=${guests}&rooms=${roomCount}&price=${selectedHotel.price * roomCount}`
-                  )
-                }
-              >
-                Book Now
-              </button>
-            </div>
+        {/* Price Section */}
+        <div className="lg:col-span-1 bg-white rounded-lg p-6 border">
+          <div className="text-lg font-semibold mb-3">Price for {roomCount} Room(s)</div>
+          <div className="text-2xl font-bold">${totalPrice}</div>
+          <div className="mt-4">
+            <button
+              onClick={() =>
+                navigate(`/bookingpage?propertyid=${propertyid}&checkin=${checkInDate}&checkout=${checkOutDate}&guests=${guests}&rooms=${roomCount}&price=${totalPrice}`)
+              }
+              className="bg-blue-500 text-white py-3 px-6 rounded-md w-full"
+            >
+              Book Now
+            </button>
           </div>
         </div>
       </div>
